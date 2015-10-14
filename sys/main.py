@@ -22,11 +22,17 @@ class Application(tornado.web.Application):
         handlers = [
       (r"/api", ApiHandler),
       (r"/api/condition", ConditionHandler),
-      (r"/api/conditionpeople/source", ConditionPeopleHandler)
+      (r"/api/conditionpeople/source", ConditionPeopleHandler),
+      (r"/test",TestHandler)
       ]
         conn = pymongo.Connection("localhost", 27017)
         self.db = conn["warn_set"]
         tornado.web.Application.__init__(self, handlers, debug=True)
+
+class TestHandler(tornado.web.RequestHandler):
+    def get(self):
+      #a = self.get_argument('xxx')  
+        self.write(self.request.body)
 
 class ApiHandler(tornado.web.RequestHandler):
   #def post(): 
@@ -50,9 +56,11 @@ class ApiHandler(tornado.web.RequestHandler):
         api_list = json.dumps(_api_list,indent=4)
         #print api_list
         self.write(api_list)
-         
+       
+
 class ConditionHandler(tornado.web.RequestHandler):
-    
+  
+    #(r"/api/condition", ConditionHandler),
     def get(self):
         #get data 
         #warn_set
@@ -69,16 +77,17 @@ class ConditionHandler(tornado.web.RequestHandler):
          #self.get_argument()
         _tem_dict = {}
         if _condition_name != u'':
-            _tem_dict['condition_name'] = _condition_name
             coll = self.application.db.warn_set    
-            coll.insert(_tem_dict)
-
-
+            if coll.find({ 'condition_name' : _condition_name }) == None:
+                _tem_dict['condition_name'] = _condition_name
+                coll.insert(_tem_dict)
        
-class ConditionPeopleHandler(tornado.web.RequestHandler):
 
+class ConditionPeopleHandler(tornado.web.RequestHandler):
+    
+    '''(r"/api/conditionpeople/source", ConditionPeopleHandler)'''
+    
     def get(self):
-        
         #
         _cond_name = self.get_argument('cond_name')
         _tem_people_dict = {}
@@ -92,8 +101,8 @@ class ConditionPeopleHandler(tornado.web.RequestHandler):
         #pass   
 
     def post(self):
-        
-        pass
+        #url
+
 if __name__ == '__main__':
 
     tornado.options.parse_command_line()
