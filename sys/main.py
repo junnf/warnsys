@@ -88,20 +88,36 @@ class ConditionPeopleHandler(tornado.web.RequestHandler):
     '''(r"/api/conditionpeople/source", ConditionPeopleHandler)'''
     
     def get(self):
-        #
+        
         _cond_name = self.get_argument('cond_name')
         _tem_people_dict = {}
         if _cond_name != u'':
-            coll = self.application.db._cond_name
+            coll = self.application.db[_cond_name]
             for x in coll.find():
-                _tem_people_dict[x[0]] = {'name':x[0],'email':x[1],'mobi':x[2]}
-            self.write(json.dumps(_tem_people_dict))
+                _tem_people_dict[x[u'name']] = {
+                    'name':x['name'],
+                    'email':x['email'],
+                    'mobi':x['mobi']
+                    }
+                self.write(json.dumps(_tem_people_dict))
 
         #get condition people
         #pass   
 
     def post(self):
+        
         #url
+        _cond_name_set = self.get_argument('condition')
+        _person = self.get_argument('person')
+        _email = self.get_argument('email')
+        _mobi = self.get_argument('mobi')
+        _tem_people_dict = {}
+        #if _person != u'' and ( _email != u'' or _mobi != u''):
+        coll = self.application.db[_cond_name_set]
+            #for _record in coll.find({'name':_person}):
+        if coll.find({'name' : _person}) == None:
+            coll.insert({'name':_person, 'email':_email, 'mobi':_mobi})
+        self.write(json.dumps({'person':_person,'email':_email,'mobi':_mobi}))
 
 if __name__ == '__main__':
 
