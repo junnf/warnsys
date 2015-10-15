@@ -20,8 +20,8 @@ from tornado.options import define, options
 
 #import sendcloud.sendemail
 from sendcloud import sendemail
-import sendcloud.sendmessage
-
+#import sendcloud.sendmessage
+from sendcloud import sendmessage
 
 define("port", default=8000,help="nothing",type=int)
 
@@ -67,6 +67,17 @@ class ApiHandler(tornado.web.RequestHandler):
         #print api_list
         self.write(api_list)
        
+class PeopleMessageHandler(tornado.web.RequestHandler):
+    
+    def post(self):
+      #add member    
+        _name = self.get_argument('name')
+        _email = self.get_argument('email')
+        _mobi = self.get_argument('mobi')
+        coll = self.application.db['member']
+        coll.insert({'name':_name,'email':_email,'mobi':_mobi})
+
+
 class NotifyHandler(tornado.web.RequestHandler):
     def post(self):
         '''_condition = self.get_argument('cond')
@@ -96,7 +107,8 @@ class TongzhiHandler(tornado.web.RequestHandler):
         _cond_des = self.get_argument('cond_des')
         coll = self.application.db['member']
         for _tem_meb in coll.find():
-          #notify
+          #notify email
+            _phone = str(_tem_meb['mobi'])
             _pos_par = sendemail.get_params(emailto = str(_tem_meb['email']),
                 emailfrom = 'error_alert@sendcloud.org',
                 fromname = 'AlertCenter',
@@ -104,7 +116,15 @@ class TongzhiHandler(tornado.web.RequestHandler):
                 content = _cond_des 
                 )
             sendemail.sendemail(sendemail.url,_pos_par)
+         # notify mobi
+            #_cond 
+            #_cond_des
 
+            _str_v = '{"%user_name%":' + '"' + str(_cond) + '","%alert_content%":"' + str(_cond_des) + '"}'
+           # _str_v = '{"%user_name%":"%s","%alert_content%":"%s"}' % (_cond,_cond_des)
+            
+            response = sendmessage.sendmess(_str_v, _phone)
+            self.write(response)
 
 class ConditionHandler(tornado.web.RequestHandler):
   
